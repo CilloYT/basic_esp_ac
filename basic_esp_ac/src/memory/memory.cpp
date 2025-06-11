@@ -35,3 +35,5 @@ uintptr_t memory::readMemory(DWORD addy, HANDLE handle)
     
     return resAddress;
 }
+
+
