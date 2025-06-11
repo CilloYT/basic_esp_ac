@@ -15,6 +15,6 @@ namespace offsets
 	constexpr DWORD entityPosY = 0x8;
 	constexpr DWORD entityPosZ = 0xC;
 
-	constexpr DWORD viewMatrix = 0x57DFD0;
+	constexpr DWORD viewMatrix = 0x57DFD0; //static address
 
 }
