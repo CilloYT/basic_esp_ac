@@ -4,6 +4,7 @@
 #include <dwmapi.h>
 #include <d3d11.h>
 #include <array>
+#include <string>
 
 #include <../imgui/imgui.h>
 #include <../imgui/imgui_impl_dx11.h>
@@ -189,6 +190,9 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show)
 	Vector3 locPos;
 	Math math;
 
+	float yaw;
+	float pitch;
+
 	while (running)
 	{
 		MSG msg;
@@ -221,6 +225,8 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show)
 
 		
 		viewmatrix = memory::readMem<std::array<float, 16>>(offsets::viewMatrix, handle); //viewmatrix set
+		uintptr_t leastDst  = 999999;
+		DWORD nearestEntity = 0;
 	
 		//loop entList
 		for (int i = 1; i < 32; i++)
@@ -252,12 +258,39 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show)
 					ImGui::GetBackgroundDrawList()->AddRect({start.x, start.y}, {end.x, end.y}, IM_COL32(255, 0, 0, 255), 0.0f, 0, 2.0f);
 					
 					ImGui::GetBackgroundDrawList()->AddText({ screen.x, start.y-20.f }, ImColor(1.f, 200.f, 0.f), name.data());
-					
+	
 				}
 				
 			}
 
+			// get nearest Entity
+			if (leastDst > math.DistanceTo(pos, locPos))
+			{
+				if (memory::readMem<uintptr_t>(currentEntity + offsets::health, handle) <= 0 || memory::readMem<uintptr_t>(currentEntity + offsets::health, handle) > 100)
+					continue;
+				else {
+					leastDst = math.DistanceTo(pos, locPos);
+					nearestEntity = currentEntity;
+				}
+									
+			}
+			
+		}
 
+		// get nearestEntPos
+		pos.x = memory::readMem<float>(nearestEntity + offsets::entityPosX, handle);
+		pos.y = memory::readMem<float>(nearestEntity + offsets::entityPosY, handle);
+		pos.z = memory::readMem<float>(nearestEntity + offsets::entityPosZ, handle);
+
+
+		// aimbot
+		if (GetAsyncKeyState(VK_CONTROL) & 0x8000)
+		{
+			if (math.calcViewAngles(yaw, pitch, locPos, pos))
+			{
+				memory::writeMem<float>(locPlayer + offsets::viewAngleYaw, yaw, handle);
+				memory::writeMem<float>(locPlayer + offsets::viewAnglePitch, pitch, handle);
+			}
 		}
 
 

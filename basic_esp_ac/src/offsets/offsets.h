@@ -17,4 +17,7 @@ namespace offsets
 
 	constexpr DWORD viewMatrix = 0x57DFD0; //static address
 
+	constexpr DWORD viewAngleYaw = 0x34;
+	constexpr DWORD viewAnglePitch = 0x38;
+
 }

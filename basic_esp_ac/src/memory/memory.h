@@ -20,8 +20,11 @@ public:
 		return value;
 	}
 
-	/*
-	uintptr_t readMemory(DWORD addy, HANDLE handle);
-	*/
+	template <typename T>
+	static void writeMem(DWORD address, const T& value, HANDLE hProcess)
+	{
+		WriteProcessMemory(hProcess, reinterpret_cast<LPVOID>(address), &value, sizeof(T), nullptr);
+	}
+
 };
 

@@ -1,6 +1,7 @@
 #include <iostream>
 #include "math.h"
 
+#define M_PI 3.14159265
 
 
 bool Math::WorldToScreen(Vector3 pos, Vector2& screen, std::array<float, 16> viewMatrix, int screenWidth, int screenHeight)
@@ -20,12 +21,34 @@ bool Math::WorldToScreen(Vector3 pos, Vector2& screen, std::array<float, 16> vie
     return true;
 }
 
-float DistanceTo(const Vector3& entPos, Vector3 locPlayerPos) {
+float Math::DistanceTo(const Vector3& entPos, Vector3 locPlayerPos) {
     return sqrtf(
         (locPlayerPos.x - entPos.x) * (locPlayerPos.x - entPos.x) +
         (locPlayerPos.y - entPos.y) * (locPlayerPos.y - entPos.y) +
         (locPlayerPos.z - entPos.z) * (locPlayerPos.z - entPos.z));
 }
+
+bool Math::calcViewAngles(float& yaw, float& pitch, Vector3 locPlayerPos, Vector3 entPos)
+{
+    //calc pitch
+    float delta_height = entPos.z - locPlayerPos.z;
+    float distance_c = DistanceTo(entPos, locPlayerPos);
+   
+    pitch = asinf(delta_height / distance_c); // radians
+    pitch = pitch * (180 / M_PI); // in degrees
+
+    //calc yaw
+    float delta_y = locPlayerPos.y - entPos.y;
+    float delta_x = locPlayerPos.x - entPos.x;
+
+
+    yaw = atan2(delta_y, delta_x); //radians
+    yaw = yaw * (180 / M_PI); // in degrees (-180 to 180) cuz of atan2
+    yaw -= 90; // -90 to adapt to AC (0 to 360)
+
+    return true;
+}
+
 
 
 bool Math::getRectPos(Vector3 locPlayerPos, Vector3 entPos, Vector2 screen, Vector2& start, Vector2& end)
