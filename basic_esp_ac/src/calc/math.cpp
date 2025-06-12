@@ -19,3 +19,34 @@ bool Math::WorldToScreen(Vector3 pos, Vector2& screen, float viewMatrix[16], int
 
     return true;
 }
+
+float DistanceTo(const Vector3& entPos, Vector3 locPlayerPos) {
+    return sqrtf(
+        (locPlayerPos.x - entPos.x) * (locPlayerPos.x - entPos.x) +
+        (locPlayerPos.y - entPos.y) * (locPlayerPos.y - entPos.y) +
+        (locPlayerPos.z - entPos.z) * (locPlayerPos.z - entPos.z));
+}
+
+
+bool Math::getRectPos(Vector3 locPlayerPos, Vector3 entPos, Vector2 screen, Vector2& start, Vector2& end)
+{
+    // Distance vom Spieler zum Gegner (Kamera zum Zielpunkt)
+    float distance = DistanceTo(entPos, locPlayerPos); // musst du definieren
+    if (distance <= 0.0f) distance = 0.01f; // vermeidet Division durch 0
+
+    // Größe abhängig von Entfernung
+    float scale = 100.0f / distance; // passt diesen Wert an für bessere Skalierung
+
+    float height = scale * 50.0f;    // Basisgröße mal scale
+    float width = height / 2.4f;
+
+    //screen.x,y = (0 | 0) ist links oben ecke
+
+    start.x = screen.x - (width / 2);
+    start.y = screen.y;
+
+    end.x = start.x + width;
+    end.y = screen.y + height;
+
+    return true;
+}

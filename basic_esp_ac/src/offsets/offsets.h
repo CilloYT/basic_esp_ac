@@ -13,7 +13,7 @@ namespace offsets
 	//entity Positions (gilt auch für locPlayer)
 	constexpr DWORD entityPosX = 0x4;
 	constexpr DWORD entityPosY = 0x8;
-	constexpr DWORD entityPosZ = 0xC;
+	constexpr DWORD entityPosZ = 0xC; //4.5 head
 
 	constexpr DWORD viewMatrix = 0x57DFD0; //static address
 

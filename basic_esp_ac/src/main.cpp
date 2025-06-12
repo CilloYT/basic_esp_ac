@@ -182,7 +182,10 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show)
 
 	float viewmatrix[16];
 	Vector2 screen;
+	Vector2 start;
+	Vector2 end;
 	Vector3 pos;
+	Vector3 locPos;
 	Math math;
 
 	while (running)
@@ -204,34 +207,49 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show)
 		{
 			break;
 		}
-
+		
 		ImGui_ImplDX11_NewFrame();
 		ImGui_ImplWin32_NewFrame();
+
+		
+
 
 		ImGui::NewFrame();
 
 		// RENDERING
+
 		
 
 		ReadProcessMemory(handle, (LPCVOID)(offsets::viewMatrix), &viewmatrix, sizeof(viewmatrix), nullptr); //viewmatrix set
 		//loop entList
-		for (int i = 1; i < 8; i++)
+		for (int i = 1; i < 32; i++)
 		{
 			currentEntity = mem.readMemory(entityList + 0x4 * i, handle);
 			entHealth = mem.readMemory(currentEntity + offsets::health, handle);
 			ReadProcessMemory(handle, (LPCVOID)(currentEntity + offsets::name), &name, sizeof(name), nullptr); //entitys name set
 
-
+			ReadProcessMemory(handle, (LPCVOID)(locPlayer + offsets::entityPosX), &locPos.x, sizeof(locPos.x), nullptr);
+			ReadProcessMemory(handle, (LPCVOID)(locPlayer + offsets::entityPosY), &locPos.y, sizeof(locPos.y), nullptr);
+			ReadProcessMemory(handle, (LPCVOID)(locPlayer + offsets::entityPosZ), &locPos.z, sizeof(locPos.z), nullptr);
 
 			ReadProcessMemory(handle, (LPCVOID)(currentEntity + offsets::entityPosX), &pos.x, sizeof(pos.x), nullptr);
 			ReadProcessMemory(handle, (LPCVOID)(currentEntity + offsets::entityPosY), &pos.y, sizeof(pos.y), nullptr);
 			ReadProcessMemory(handle, (LPCVOID)(currentEntity + offsets::entityPosZ), &pos.z, sizeof(pos.z), nullptr);
 
 
-			if (math.WorldToScreen(pos, screen, viewmatrix, 1920, 1061))
+			if (math.WorldToScreen(pos, screen, viewmatrix, 1920, 1008) && entHealth > 0)
 			{
-				std::cout << name << " - x: " << screen.x << " - y: " << screen.y << "\n";
-				ImGui::GetBackgroundDrawList()->AddCircleFilled({ screen.x, screen.y }, 10.f, ImColor(1.f, 0.f, 0.f));
+				
+				ImGui::GetBackgroundDrawList()->AddCircleFilled({ screen.x, screen.y }, 2.f, ImColor(5.f, 200.f, 0.f));
+				
+				if (math.getRectPos(locPos, pos, screen, start, end))
+				{
+					ImGui::GetBackgroundDrawList()->AddRect({start.x, start.y}, {end.x, end.y}, IM_COL32(255, 0, 0, 255), 0.0f, 0, 2.0f);
+					
+					ImGui::GetBackgroundDrawList()->AddText({ screen.x, start.y-20.f }, ImColor(1.f, 200.f, 0.f), name);
+					
+				}
+				
 			}
 
 
@@ -240,7 +258,7 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show)
 
 		// RENDERING LAST
 		ImGui::Render();
-
+	
 		constexpr float color[4]{ 0.f, 0.f, 0.f, 0.f };
 		device_context->OMSetRenderTargets(1U, &render_target_view, nullptr);
 		device_context->ClearRenderTargetView(render_target_view, color);
