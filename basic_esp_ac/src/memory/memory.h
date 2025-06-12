@@ -11,7 +11,17 @@ class memory
 	
 public:
 	DWORD GetModuleBaseAddress(DWORD procId, const wchar_t* modName);
-	uintptr_t readMemory(DWORD addy, HANDLE handle);
 
+	template <typename T>
+	static T readMem(DWORD address, HANDLE hProcess)
+	{
+		T value{};
+		ReadProcessMemory(hProcess, reinterpret_cast<LPCVOID>(address), &value, sizeof(T), nullptr);
+		return value;
+	}
+
+	/*
+	uintptr_t readMemory(DWORD addy, HANDLE handle);
+	*/
 };
 

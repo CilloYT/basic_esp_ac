@@ -28,6 +28,7 @@ DWORD memory::GetModuleBaseAddress(DWORD procId, const wchar_t* modName)
 
 
 
+/*
 uintptr_t memory::readMemory(DWORD addy, HANDLE handle)
 {
     uintptr_t resAddress;
@@ -35,5 +36,5 @@ uintptr_t memory::readMemory(DWORD addy, HANDLE handle)
     
     return resAddress;
 }
-
+*/
 

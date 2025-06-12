@@ -3,6 +3,7 @@
 #include <TlHelp32.h>
 #include <dwmapi.h>
 #include <d3d11.h>
+#include <array>
 
 #include <../imgui/imgui.h>
 #include <../imgui/imgui_impl_dx11.h>
@@ -114,6 +115,7 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show)
 	ID3D11RenderTargetView* render_target_view{ nullptr };
 	D3D_FEATURE_LEVEL level{};
 
+	
 	D3D11CreateDeviceAndSwapChain(
 		nullptr,
 		D3D_DRIVER_TYPE_HARDWARE,
@@ -171,16 +173,15 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show)
 	//get HANDLE with ALL_ACCESS
 	HANDLE handle = OpenProcess(PROCESS_ALL_ACCESS, false, pID);
 
-	uintptr_t locPlayer = mem.readMemory(baseAddr + offsets::localPlayer, handle);
-	uintptr_t locHealth = mem.readMemory(locPlayer + offsets::health, handle);
-	std::cout << "health: " << locHealth << "\n\n";
+	uintptr_t locPlayer = memory::readMem<uintptr_t>(baseAddr + offsets::localPlayer, handle);
 
-	uintptr_t entityList = mem.readMemory(baseAddr + offsets::entityList, handle);
+	uintptr_t entityList = memory::readMem<uintptr_t>(baseAddr + offsets::entityList, handle);
+
 	uintptr_t currentEntity;
-	char name[32];
+	std::array<char, 32> name;
 	int entHealth;
 
-	float viewmatrix[16];
+	std::array<float, 16> viewmatrix;
 	Vector2 screen;
 	Vector2 start;
 	Vector2 end;
@@ -219,25 +220,29 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show)
 		// RENDERING
 
 		
-
-		ReadProcessMemory(handle, (LPCVOID)(offsets::viewMatrix), &viewmatrix, sizeof(viewmatrix), nullptr); //viewmatrix set
+		viewmatrix = memory::readMem<std::array<float, 16>>(offsets::viewMatrix, handle); //viewmatrix set
+	
 		//loop entList
 		for (int i = 1; i < 32; i++)
 		{
-			currentEntity = mem.readMemory(entityList + 0x4 * i, handle);
-			entHealth = mem.readMemory(currentEntity + offsets::health, handle);
-			ReadProcessMemory(handle, (LPCVOID)(currentEntity + offsets::name), &name, sizeof(name), nullptr); //entitys name set
+			currentEntity = memory::readMem<DWORD>(entityList + 0x4 * i, handle); // get current entity
 
-			ReadProcessMemory(handle, (LPCVOID)(locPlayer + offsets::entityPosX), &locPos.x, sizeof(locPos.x), nullptr);
-			ReadProcessMemory(handle, (LPCVOID)(locPlayer + offsets::entityPosY), &locPos.y, sizeof(locPos.y), nullptr);
-			ReadProcessMemory(handle, (LPCVOID)(locPlayer + offsets::entityPosZ), &locPos.z, sizeof(locPos.z), nullptr);
+			entHealth = memory::readMem<uintptr_t>(currentEntity + offsets::health, handle); // entitys health set
+			    
+            name = memory::readMem<std::array<char, 32>>(currentEntity + offsets::name, handle); //entitys name set
 
-			ReadProcessMemory(handle, (LPCVOID)(currentEntity + offsets::entityPosX), &pos.x, sizeof(pos.x), nullptr);
-			ReadProcessMemory(handle, (LPCVOID)(currentEntity + offsets::entityPosY), &pos.y, sizeof(pos.y), nullptr);
-			ReadProcessMemory(handle, (LPCVOID)(currentEntity + offsets::entityPosZ), &pos.z, sizeof(pos.z), nullptr);
+			// get localPlayer position
+			locPos.x = memory::readMem<float>(locPlayer + offsets::entityPosX, handle);
+			locPos.y = memory::readMem<float>(locPlayer + offsets::entityPosY, handle);
+			locPos.z = memory::readMem<float>(locPlayer + offsets::entityPosZ, handle);
+
+			// get entity position
+			pos.x = memory::readMem<float>(currentEntity + offsets::entityPosX, handle);
+			pos.y = memory::readMem<float>(currentEntity + offsets::entityPosY, handle);
+			pos.z = memory::readMem<float>(currentEntity + offsets::entityPosZ, handle);
 
 
-			if (math.WorldToScreen(pos, screen, viewmatrix, 1920, 1008) && entHealth > 0)
+			if (math.WorldToScreen(pos, screen, viewmatrix, 1920, 1080) && entHealth > 0)
 			{
 				
 				ImGui::GetBackgroundDrawList()->AddCircleFilled({ screen.x, screen.y }, 2.f, ImColor(5.f, 200.f, 0.f));
@@ -246,7 +251,7 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show)
 				{
 					ImGui::GetBackgroundDrawList()->AddRect({start.x, start.y}, {end.x, end.y}, IM_COL32(255, 0, 0, 255), 0.0f, 0, 2.0f);
 					
-					ImGui::GetBackgroundDrawList()->AddText({ screen.x, start.y-20.f }, ImColor(1.f, 200.f, 0.f), name);
+					ImGui::GetBackgroundDrawList()->AddText({ screen.x, start.y-20.f }, ImColor(1.f, 200.f, 0.f), name.data());
 					
 				}
 				
@@ -266,8 +271,6 @@ INT APIENTRY WinMain(HINSTANCE instance, HINSTANCE, PSTR, INT cmd_show)
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
 		swap_chain->Present(1U, 0U);
-
-
 
 	}
 

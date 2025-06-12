@@ -3,7 +3,7 @@
 
 
 
-bool Math::WorldToScreen(Vector3 pos, Vector2& screen, float viewMatrix[16], int screenWidth, int screenHeight)
+bool Math::WorldToScreen(Vector3 pos, Vector2& screen, std::array<float, 16> viewMatrix, int screenWidth, int screenHeight)
 {
     float x = viewMatrix[0] * pos.x + viewMatrix[4] * pos.y + viewMatrix[8] * pos.z + viewMatrix[12];
     float y = viewMatrix[1] * pos.x + viewMatrix[5] * pos.y + viewMatrix[9] * pos.z + viewMatrix[13];
